@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-#7!_!')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "backend-timesheet-app.onrender.com,localhost,127.0.0.1").split(",")
 
 
 
@@ -52,11 +52,11 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True  
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
-    "http://backend-timesheet-app.onrender.com",
+    "https://backend-timesheet-app.onrender.com",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",  
-    "http://backend-timesheet-app.onrender.com",
+    "https://backend-timesheet-app.onrender.com",
 ]
 
 ROOT_URLCONF = 'backend.urls'
