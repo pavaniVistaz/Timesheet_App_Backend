@@ -6,7 +6,7 @@ env/
 __pycache__/
 
 # Database
-*.sqlite3
+db.sqlite3
 
 # Logs and temp files
 *.log
