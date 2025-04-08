@@ -49,12 +49,12 @@ MIDDLEWARE = [
 ]
 CORS_ALLOW_CREDENTIALS = True  
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
     "https://timesheet-vite-frontend.vercel.app",  
+    "https://web-production-11c4.up.railway.app",
 ]
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
     "https://timesheet-vite-frontend.vercel.app",  
+    "https://web-production-11c4.up.railway.app",
 ]
 
 ROOT_URLCONF = 'backend.urls'
