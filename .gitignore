@@ -1,17 +1,5 @@
-# Virtual environment
-venv/
-myenv/
-env/
-*.pyc
 __pycache__/
 
-# Database
-# Ignore SQLite database
-db.sqlite3
-
-# Ignore environment variables
-.env
-backend/.env
 
 
 # Logs and temp files
@@ -24,7 +12,8 @@ backend/.env
 *.DS_Store
 
 # Static and media files
+.env
 staticfiles/
-media/
+
 
 

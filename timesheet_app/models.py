@@ -3,6 +3,19 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
+# from datetime import datetime
+# from db_connection import db
+
+# custom_user_collection = db['CustomUser']
+# admin_collection = db['Admin']
+# team_leader_collection = db['TeamLeader']
+# user_collection = db['User']
+# project_collection = db['Project']
+# team_collection = db['Team']
+# task_collection = db['Task']
+# timesheet_collection = db['Timesheet']
+# timesheet_table_collection = db['TimesheetTable']
+
 # Base User
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
@@ -11,11 +24,31 @@ class CustomUserManager(BaseUserManager):
         user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+       
+        # insert into Mongodb
+        # user_data = {
+        #     "username": user.username,
+        #     "usertype": user.usertype,
+        #     "firstname": user.firstname,
+        #     "lastname": user.lastname,
+        #     "email": user.email,
+        #     "team": user.team,
+        #     "subteam": user.subteam,
+        #     "chat_id": user.chat_id,
+        #     "password": user.password,  
+        #     "is_superuser": user.is_superuser,
+        #     "is_staff": user.is_staff
+            
+        # }
+        # custom_user_collection.insert_one(user_data)
+
         return user
+    
 
     def create_superuser(self, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('usertype', 'SuperAdmin')
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -27,16 +60,16 @@ class CustomUserManager(BaseUserManager):
 # Custom User
 class CustomUser(AbstractUser):
     USERTYPE_CHOICES = [
-        ('SuperAdmin', 'SuperAdmin'),  # CEO
-        ('Admin', 'Admin'),            # Main People, Account Managers
-        ('TeamLeader', 'TeamLeader'),  # Team Leaders (Search, Creative, Development)
-        ('User', 'User')               # Regular team members
+        ('SuperAdmin', 'SuperAdmin'), 
+        ('Admin', 'Admin'),           
+        ('TeamLeader', 'TeamLeader'), 
+        ('User', 'User')               
     ]
 
     TEAM_CHOICES = [
-        ('Search', 'Search Team'),         # SEO, SMO, SEM
-        ('Creative', 'Creative Team'),     # Creative Team (Designers + Content Writers)
-        ('Development', 'Development Team')  # Developers
+        ('Search', 'Search Team'),        
+        ('Creative', 'Creative Team'),    
+        ('Development', 'Development Team')  
     ]
 
     SUBTEAM_CHOICES = [
@@ -55,14 +88,39 @@ class CustomUser(AbstractUser):
     ]
 
     usertype = models.CharField(max_length=50, choices=USERTYPE_CHOICES)
-    firstname = models.CharField(max_length=50, default='iVista')
-    lastname = models.CharField(max_length=50, default='Solutions')
+    firstname = models.CharField(max_length=50, default='Narayan')
+    lastname = models.CharField(max_length=50, default='Rajan')
     email = models.EmailField(unique=True)
     team = models.CharField(max_length=50, choices=TEAM_CHOICES, null=True, blank=True)
     subteam = models.CharField(max_length=50, choices=SUBTEAM_CHOICES, null=True, blank=True)
-    chat_id = models.CharField(max_length=50, default='1234567890')  # Add chat_id field
+    chat_id = models.CharField(max_length=50, default='1234567890') 
+    
     objects = CustomUserManager()
 
+    class Meta:
+        verbose_name = "Custom User"
+        verbose_name_plural = "Custom Users"
+        
+    # def save(self, *args, **kwargs):
+    #     """Ensure user is also stored in MongoDB when created via Django Admin."""
+    #     super().save(*args, **kwargs)  # Save in Django DB
+        
+    #     #  Insert into MongoDB if not already present
+    #     # if not custom_user_collection.find_one({"username": self.username}):
+        #     user_data = {
+        #         "username": self.username,
+        #         "usertype": self.usertype,
+        #         "firstname": self.firstname,
+        #         "lastname": self.lastname,
+        #         "email": self.email,
+        #         "team": self.team,
+        #         "subteam": self.subteam,
+        #         "chat_id": self.chat_id,
+        #         "is_superuser": self.is_superuser,
+        #         "is_staff": self.is_staff,
+        #     }
+        #     custom_user_collection.insert_one(user_data)
+    
     def __str__(self):
         return self.username
 
@@ -75,6 +133,14 @@ class Admin(models.Model):
         if self.user.usertype != 'Admin':
             raise ValueError('Cannot assign Admin role to non-Admin user.')
         super().save(*args, **kwargs)
+        
+        # existing_admin = admin_collection.find_one({"username": self.user.username})
+        # if not existing_admin:
+        #     admin_collection.insert_one({
+        #         "username": self.user.username,
+        #         "email": self.user.email,
+        #         "usertype": self.user.usertype
+        #     })
 
     def __str__(self):
         return self.user.username
@@ -88,6 +154,14 @@ class TeamLeader(models.Model):
         if self.user.usertype != 'TeamLeader':
             raise ValueError('Cannot assign TeamLeader role to non-TeamLeader user.')
         super().save(*args, **kwargs)
+        
+        # existing_team_leader = team_leader_collection.find_one({"username": self.user.username})
+        # if not existing_team_leader:
+        #     team_leader_collection.insert_one({
+        #         "username": self.user.username,
+        #         "email": self.user.email,
+        #         "usertype": self.user.usertype
+        #     })
 
     def __str__(self):
         return self.user.username
@@ -101,30 +175,18 @@ class User(models.Model):
         if self.user.usertype != 'User':
             raise ValueError('Cannot assign User role to non-User.')
         super().save(*args, **kwargs)
+        
+        # existing_user = user_collection.find_one({"username": self.user.username})
+        # if not existing_user:
+        #     user_collection.insert_one({
+        #         "username": self.user.username,
+        #         "email": self.user.email,
+        #         "usertype": self.user.usertype
+        #     })
+
 
     def __str__(self):
         return self.user.username
-
-# Team Model
-class Team(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    account_manager = models.ForeignKey(CustomUser, related_name='managed_teams', on_delete=models.CASCADE)
-    team_leader_search = models.ForeignKey(CustomUser, related_name='led_search_teams', on_delete=models.CASCADE, null=True, blank=True)
-    team_leader_development = models.ForeignKey(CustomUser, related_name='led_development_teams', on_delete=models.CASCADE, null=True, blank=True)
-    team_leader_creative = models.ForeignKey(CustomUser, related_name='led_creative_teams', on_delete=models.CASCADE, null=True, blank=True)
-    team = models.CharField(max_length=50, choices=CustomUser.TEAM_CHOICES)
-    subteam = models.CharField(max_length=50, choices=CustomUser.SUBTEAM_CHOICES, null=True, blank=True)
-    members = models.ManyToManyField(CustomUser, related_name='teams')
-    created_by = models.ForeignKey(CustomUser, related_name='created_teams', on_delete=models.CASCADE, default=1)
-
-    def __str__(self):
-        return self.name
-
-    def delete(self, *args, **kwargs):
-        # Remove the team reference from associated projects before deleting the team
-        Project.objects.filter(team=self).update(team=None)
-        super().delete(*args, **kwargs)
 
 # Project Model
 class Project(models.Model):
@@ -139,22 +201,72 @@ class Project(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     start_date = models.DateField()
     deadline = models.DateField()
-    progress = models.IntegerField(default=0)  # Progress field
-    team = models.ForeignKey(Team, related_name='projects', on_delete=models.CASCADE, null=True, blank=True)  # Add this line
-    created_by = models.ForeignKey(CustomUser, related_name='created_projects', on_delete=models.CASCADE, default=1)  # Add this line with default value
-
+    created_by = models.ForeignKey(CustomUser, related_name='created_projects', on_delete=models.CASCADE, default=1)  
+    teams = models.ManyToManyField('Team', related_name='projects_assigned') 
     def __str__(self):
         return self.name
+    
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)  # Save in Django ORM first
 
-# Notification Model
-class Notification(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    message = models.TextField()
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    #     # # Fetch assigned teams' names
+    #     # assigned_teams = list(self.teams.values_list('name', flat=True))
 
+    #     # # Insert into MongoDB
+    #     # project_collection.insert_one({
+    #     #     "name": self.name,
+    #     #     "description": self.description,
+    #     #     "status": self.status,
+    #     #     "start_date": str(self.start_date),
+    #     #     "deadline": str(self.deadline),
+    #     #     "created_by": self.created_by.username,
+    #     #     "teams": assigned_teams  # Storing as a list of team names
+    #     # })
+       
+# Team Model
+class Team(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    account_managers = models.ManyToManyField(CustomUser, related_name='managed_teams')  
+    team_leader_search = models.ForeignKey(CustomUser, related_name='led_search_teams', on_delete=models.CASCADE, null=True, blank=True)
+    team_leader_development = models.ForeignKey(CustomUser, related_name='led_development_teams', on_delete=models.CASCADE, null=True, blank=True)
+    team_leader_creative = models.ForeignKey(CustomUser, related_name='led_creative_teams', on_delete=models.CASCADE, null=True, blank=True)
+    team = models.CharField(max_length=50, choices=CustomUser.TEAM_CHOICES)
+    subteam = models.CharField(max_length=50, choices=CustomUser.SUBTEAM_CHOICES, null=True, blank=True)
+    members = models.ManyToManyField(CustomUser, related_name='teams')
+    created_by = models.ForeignKey(CustomUser, related_name='created_teams', on_delete=models.CASCADE, default=1)
+    projects = models.ManyToManyField(Project, related_name='teams_assigned')  
     def __str__(self):
-        return f"Notification for {self.user.username} - {self.message[:20]}"
+        return self.name
+    
+    # def save(self, *args, **kwargs):
+    #     """Insert new team data into MongoDB when saving."""
+    #     super().save(*args, **kwargs)  # Save in Django ORM first
+
+    #     # # Fetch team details
+    #     # account_manager_names = list(self.account_managers.values_list('username', flat=True))
+    #     # member_names = list(self.members.values_list('username', flat=True))
+    #     # project_names = list(self.projects.values_list('name', flat=True))
+
+    #     # # Insert into MongoDB
+    #     # team_collection.insert_one({
+    #     #     "name": self.name,
+    #     #     "description": self.description,
+    #     #     "account_managers": account_manager_names,
+    #     #     "team_leader_search": self.team_leader_search.username if self.team_leader_search else None,
+    #     #     "team_leader_development": self.team_leader_development.username if self.team_leader_development else None,
+    #     #     "team_leader_creative": self.team_leader_creative.username if self.team_leader_creative else None,
+    #     #     "team": self.team,
+    #     #     "subteam": self.subteam,
+    #     #     "members": member_names,
+    #     #     "created_by": self.created_by.username,
+    #     #     "projects": project_names
+    #     # })
+    # def delete(self, *args, **kwargs):
+    #     for project in self.projects.all():
+    #         project.teams.remove(self)  
+    #     super().delete(*args, **kwargs)
+    #     team_collection.delete_one({"name": self.name})
 
 # Task Model
 class Task(models.Model):
@@ -179,8 +291,31 @@ class Task(models.Model):
     admin_assigned_to = models.ForeignKey(CustomUser, related_name='admin_tasks', on_delete=models.SET_NULL, null=True, blank=True)
     teamleader_assigned_to = models.ForeignKey(CustomUser, related_name='teamleader_tasks', on_delete=models.SET_NULL, null=True, blank=True)
     
+    
     def __str__(self):
         return self.title
+    
+    # def save(self, *args, **kwargs):
+    #     """Insert new task data into MongoDB when saving."""
+    #     super().save(*args, **kwargs)  # Save in Django ORM first
+
+    #     start_date_str = self.start_date.strftime("%Y-%m-%d") if isinstance(self.start_date, datetime) else str(self.start_date)
+    #     end_date_str = self.end_date.strftime("%Y-%m-%d") if isinstance(self.end_date, datetime) else str(self.end_date)
+    #     # Insert into MongoDB
+        
+    #     task_collection.insert_one({
+    #         "title": self.title,
+    #         "description": self.description,
+    #         "status": self.status,
+    #         "priority": self.priority,
+    #         "start_date": start_date_str,
+    #         "end_date": end_date_str,
+    #         "created_by": self.created_by.username,
+    #         "project": self.project.name,
+    #         "superadmin_assigned_to": self.superadmin_assigned_to.username if self.superadmin_assigned_to else None,
+    #         "admin_assigned_to": self.admin_assigned_to.username if self.admin_assigned_to else None,
+    #         "teamleader_assigned_to": self.teamleader_assigned_to.username if self.teamleader_assigned_to else None
+    #     })
 
     def assign_task(self, assigned_by, assigned_to):
         if assigned_by.usertype == 'SuperAdmin':
@@ -191,6 +326,11 @@ class Task(models.Model):
             self.teamleader_assigned_to = assigned_to
             
         self.save()
+    
+    # def delete(self, *args, **kwargs):
+    #     """Delete task from MongoDB when removed from Django."""
+    #     super().delete(*args, **kwargs)
+    #     task_collection.delete_one({"title": self.title})
 
 # Timesheet Model
 class Timesheet(models.Model):
@@ -212,6 +352,26 @@ class Timesheet(models.Model):
 
     def __str__(self):
         return f"Timesheet for {self.created_by.username} on {self.date}"
+    
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs) 
+
+    #     # Insert into MongoDB
+    #     timesheet_collection.insert_one({
+    #         "date": self.date.strftime("%Y-%m-%d"),
+    #         "task": self.task,
+    #         "submitted_to": self.submitted_to.username,
+    #         "status": self.status,
+    #         "description": self.description,
+    #         "hours": float(self.hours),
+    #         "created_by": self.created_by.username,
+    #         "project": self.project.name if self.project else None
+    #     })
+
+    # def delete(self, *args, **kwargs):
+    #     """Delete timesheet from MongoDB when removed from Django."""
+    #     super().delete(*args, **kwargs)
+    #     timesheet_collection.delete_one({"date": self.date.strftime("%Y-%m-%d"), "created_by": self.created_by.username})
 
 class TimesheetTable(models.Model):
     STATUS_CHOICES = [
@@ -231,10 +391,28 @@ class TimesheetTable(models.Model):
 
     def __str__(self):
         return f"Timesheet Table created by {self.created_by.username} on {self.created_at}"
+    
+    # def save(self, *args, **kwargs):
+    #     """Insert new Timesheet Table data into MongoDB when saving."""
+    #     super().save(*args, **kwargs)  # Save in Django ORM first
+
+    #     # Insert into MongoDB
+    #     timesheet_table_collection.insert_one({
+    #         "created_by": self.created_by.username,
+    #         "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+    #         "status": self.status,
+    #         "comments": self.comments,
+    #         "timesheets": [
+    #             {"date": ts.date.strftime("%Y-%m-%d"), "task": ts.task, "status": ts.status, "hours": float(ts.hours)}
+    #             for ts in self.timesheets.all()
+    #         ]
+    #     })
+        
 
     def delete(self, *args, **kwargs):
         orphan_timesheets = self.timesheets.all()
         super().delete(*args, **kwargs)  
+        # timesheet_table_collection.delete_one({"created_by": self.created_by.username, "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S")})
         for timesheet in orphan_timesheets:
             if not timesheet.timesheet_tables.exists():
                 timesheet.delete()

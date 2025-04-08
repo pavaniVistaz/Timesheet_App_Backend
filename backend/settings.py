@@ -1,27 +1,23 @@
 
-
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-load_dotenv()
-
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-#7!_!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "backend-timesheet-app.onrender.com,localhost,127.0.0.1").split(",")
-
-
+ALLOWED_HOSTS =['*']
 
 
 # Application definition
@@ -36,6 +32,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'timesheet_app',
     'corsheaders',
+    'rest_framework_simplejwt',
+    'whitenoise.runserver_nostatic',  
 ]
 
 MIDDLEWARE = [
@@ -51,12 +49,12 @@ MIDDLEWARE = [
 ]
 CORS_ALLOW_CREDENTIALS = True  
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  
-    "https://backend-timesheet-app.onrender.com",
+    "http://localhost:5173",
+    "https://timesheet-vite-frontend.vercel.app",  
 ]
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",  
-    "https://backend-timesheet-app.onrender.com",
+    "http://localhost:5173",
+    "https://timesheet-vite-frontend.vercel.app",  
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -80,15 +78,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-       'NAME': os.path.join(BASE_DIR, 'data', 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',  # Use MySQL as the database engine
+#         'NAME': 'timesheet_app',         # Replace with your database name
+#         'USER': 'ivistaz',              # Replace with your MySQL username
+#         'PASSWORD': 'Timesheet@2025',          # Replace with your MySQL password
+#         'HOST': 'phpmyadmin.ivistaz.co',      # Your MySQL server hostname
+#         'PORT': '3306',                       # Default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+#         }
+#     }
+# }
 
 
 # Password validation
@@ -125,9 +137,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles") 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -140,13 +152,12 @@ REST_FRAMEWORK = {
         'timesheet_app.authentication.CookieJWTAuthentication',
     ],
 }
-
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1000),  
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
-    'UPDATE_LAST_LOGIN': False,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=2),  
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=6), 
+    'ROTATE_REFRESH_TOKENS': False,  
+    'BLACKLIST_AFTER_ROTATION': False,  
+    'UPDATE_LAST_LOGIN': False, 
 }
 
 AUTH_USER_MODEL = 'timesheet_app.CustomUser'

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Timesheet, TimesheetTable, Project
+from .models import CustomUser, Timesheet, TimesheetTable, Project, Team
 
 
 # CustomUserSerializer is used to serialize the CustomUser model
@@ -48,3 +48,8 @@ class TimesheetTableSerializer(serializers.ModelSerializer):
     def delete(self, instance):
         instance.timesheets.all().delete()  # Delete related timesheets
         instance.delete()
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = '__all__'
