@@ -51,10 +51,12 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://timesheet-vite-frontend.vercel.app",  
     "https://web-production-11c4.up.railway.app",
+    "https://timesheet-app-backend-ds6w.onrender.com",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "https://timesheet-vite-frontend.vercel.app",  
     "https://web-production-11c4.up.railway.app",
+    "https://timesheet-app-backend-ds6w.onrender.com",
 ]
 
 ROOT_URLCONF = 'backend.urls'
